@@ -6,13 +6,14 @@ import (
 	"time"
 )
 
-type ChangeGetter func(accessToken string, cursor string, prefix string) []DropboxEntry
-
 type DropboxEntry struct {
 	Path      string
+	Content   string
 	IsDeleted bool
 	Modified  time.Time
 }
+
+type ChangeGetter func(accessToken string, cursor string, prefix string) []DropboxEntry
 
 var dbox = dropbox.NewDropbox()
 
@@ -31,7 +32,7 @@ func GetChanges(accessToken string, cursor string, prefix string) []DropboxEntry
 	for {
 		delta, _ := dbox.Delta(cursor, prefix)
 		for _, entry := range delta.Entries {
-			allEntries = append(allEntries, DropboxEntry{entry.Entry.Path, entry.Entry.IsDeleted, time.Time(entry.Entry.Modified)})
+			allEntries = append(allEntries, DropboxEntry{entry.Entry.Path, "", entry.Entry.IsDeleted, time.Time(entry.Entry.Modified)})
 		}
 		if !delta.HasMore {
 			break
