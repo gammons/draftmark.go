@@ -2,6 +2,7 @@ package persistence
 
 import (
 	"github.com/jinzhu/gorm"
+	_ "github.com/lib/pq"
 	"os"
 	"time"
 )
@@ -10,6 +11,7 @@ var db, _ = gorm.Open("postgres", "dbname="+os.Getenv("DB_TABLENAME")+" sslmode=
 
 func init() {
 	db.DB()
+	db.LogMode(true)
 }
 
 type Note struct {
@@ -31,5 +33,9 @@ func (c *Client) DeleteNote(note Note) bool {
 }
 
 func (c *Client) SaveNote(note Note) bool {
+	//log.Println(db.First(&note))
+	db.Where(Note{Path: note.Path}).FirstOrCreate(&note)
+	//db.Create(&note)
+
 	return true
 }

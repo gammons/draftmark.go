@@ -40,20 +40,20 @@ func Sync(user User, prefix string, client dropbox_client.Client) {
 	entries := client.GetChanges(user.DropboxAccessToken, user.DropboxCursor, "/notes")
 	for _, entry := range entries {
 		if entry.IsDeleted {
-			deleteEntry(&entry)
+			deleteEntry(&user, &entry)
 		} else {
-			createOrUpdateEntry(&entry)
+			createOrUpdateEntry(&user, &entry)
 		}
 	}
 }
 
-func deleteEntry(entry *dropbox_client.DropboxEntry) {
-	note := db.Note{Path: entry.Path, Mtime: entry.Modified}
+func deleteEntry(user *User, entry *dropbox_client.DropboxEntry) {
+	note := db.Note{UserId: user.ID, Path: entry.Path, Mtime: entry.Modified}
 	dbClient.DeleteNote(note)
 }
 
-func createOrUpdateEntry(entry *dropbox_client.DropboxEntry) {
-	note := db.Note{Path: entry.Path, Mtime: entry.Modified}
+func createOrUpdateEntry(user *User, entry *dropbox_client.DropboxEntry) {
+	note := db.Note{UserId: user.ID, Path: entry.Path, Mtime: entry.Modified}
 	dbClient.SaveNote(note)
 }
 
