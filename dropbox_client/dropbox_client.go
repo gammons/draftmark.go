@@ -13,24 +13,28 @@ type DropboxEntry struct {
 	Modified  time.Time
 }
 
-type ChangeGetter func(accessToken string, cursor string, prefix string) []DropboxEntry
-
 var dbox = dropbox.NewDropbox()
 
 func init() {
 	setupDropbox()
 }
 
-type Client struct {
-	GetChanges ChangeGetter
+type DropboxClient interface {
+	GetChanges() []DropboxEntry
 }
 
-func GetChanges(accessToken string, cursor string, prefix string) []DropboxEntry {
-	dbox.SetAccessToken(accessToken)
+type Client struct {
+	AccessToken string
+	Cursor      string
+	Prefix      string
+}
+
+func (c *Client) GetChanges() []DropboxEntry {
+	dbox.SetAccessToken(c.AccessToken)
 	allEntries := make([]DropboxEntry, 0)
 
 	for {
-		delta, _ := dbox.Delta(cursor, prefix)
+		delta, _ := dbox.Delta(c.Cursor, c.Prefix)
 		for _, entry := range delta.Entries {
 			allEntries = append(allEntries, DropboxEntry{entry.Entry.Path, "", entry.Entry.IsDeleted, time.Time(entry.Entry.Modified)})
 		}

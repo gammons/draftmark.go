@@ -28,6 +28,11 @@ type Note struct {
 type Client struct {
 }
 
+type DBClient interface {
+	DeleteNote(note Note) bool
+	SaveNote(note Note) bool
+}
+
 func (c *Client) DeleteNote(note Note) bool {
 	return true
 }

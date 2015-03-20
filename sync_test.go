@@ -1,18 +1,36 @@
 package draftmark
 
 import (
-	"draftmark/dropbox_client"
+	dropbox "draftmark/dropbox_client"
+	db "draftmark/persistence"
+	"log"
 	"testing"
 	"time"
 )
 
-func TestSync_NewFileAdded(t *testing.T) {
-	changes := func(accessToken string, cursor string, prefix string) []dropbox_client.DropboxEntry {
-		r := []dropbox_client.DropboxEntry{{Path: "/notes/test.md", IsDeleted: false, Modified: time.Now()}}
-		return r
-	}
+type FakeClient struct {
+}
 
-	client := dropbox_client.Client{GetChanges: changes}
+func (c *FakeClient) GetChanges() []dropbox.DropboxEntry {
+	r := []dropbox.DropboxEntry{{Path: "/notes/test.md", IsDeleted: false, Modified: time.Now()}}
+	return r
+}
+
+type FakeDb struct {
+}
+
+func (d *FakeDb) DeleteNote(note db.Note) bool {
+	return true
+}
+
+func (d *FakeDb) SaveNote(note db.Note) bool {
+	log.Println("I'm doing the fake SaveNote!")
+	return true
+}
+
+func TestSync_NewFileAdded(t *testing.T) {
+	client := &Sync{Dropbox: &FakeClient{}, Db: &FakeDb{}}
+
 	user := User{1, "gammons@gmail.com", "asdf", "asdf", "123", time.Now(), time.Now()}
-	Sync(user, "/notes", client)
+	client.DoSync(user, "/notes")
 }

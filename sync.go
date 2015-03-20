@@ -1,7 +1,7 @@
 package draftmark
 
 import (
-	"draftmark/dropbox_client"
+	dropbox "draftmark/dropbox_client"
 	db "draftmark/persistence"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -30,31 +30,38 @@ type Note struct {
 	UpdatedAt time.Time
 }
 
+type Sync struct {
+	Db      db.DBClient
+	Dropbox dropbox.DropboxClient
+}
+
 func init() {
 	setupDotEnv()
 }
 
-var dbClient = new(db.Client)
+func NewSync() *Sync {
+	return &Sync{Db: &db.Client{}, Dropbox: &dropbox.Client{}}
+}
 
-func Sync(user User, prefix string, client dropbox_client.Client) {
-	entries := client.GetChanges(user.DropboxAccessToken, user.DropboxCursor, "/notes")
+func (s *Sync) DoSync(user User, prefix string) {
+	entries := s.Dropbox.GetChanges()
 	for _, entry := range entries {
 		if entry.IsDeleted {
-			deleteEntry(&user, &entry)
+			s.deleteEntry(&user, &entry)
 		} else {
-			createOrUpdateEntry(&user, &entry)
+			s.createOrUpdateEntry(&user, &entry)
 		}
 	}
 }
 
-func deleteEntry(user *User, entry *dropbox_client.DropboxEntry) {
+func (s *Sync) deleteEntry(user *User, entry *dropbox.DropboxEntry) {
 	note := db.Note{UserId: user.ID, Path: entry.Path, Mtime: entry.Modified}
-	dbClient.DeleteNote(note)
+	s.Db.DeleteNote(note)
 }
 
-func createOrUpdateEntry(user *User, entry *dropbox_client.DropboxEntry) {
+func (s *Sync) createOrUpdateEntry(user *User, entry *dropbox.DropboxEntry) {
 	note := db.Note{UserId: user.ID, Path: entry.Path, Mtime: entry.Modified}
-	dbClient.SaveNote(note)
+	s.Db.SaveNote(note)
 }
 
 func setupDotEnv() {
