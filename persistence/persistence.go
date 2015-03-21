@@ -25,12 +25,15 @@ type Note struct {
 	UpdatedAt time.Time
 }
 
-type Client struct {
-}
+type Client struct{}
 
 type DBClient interface {
 	DeleteNote(note Note) bool
 	SaveNote(note Note) bool
+}
+
+func NewClient() DBClient {
+	return &Client{}
 }
 
 func (c *Client) DeleteNote(note Note) bool {
@@ -38,9 +41,6 @@ func (c *Client) DeleteNote(note Note) bool {
 }
 
 func (c *Client) SaveNote(note Note) bool {
-	//log.Println(db.First(&note))
 	db.Where(Note{Path: note.Path}).FirstOrCreate(&note)
-	//db.Create(&note)
-
 	return true
 }
