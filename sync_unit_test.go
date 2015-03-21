@@ -1,57 +1,81 @@
-package draftmark
+package draftmark_test
 
 import (
+	. "draftmark"
 	dropbox "draftmark/dropbox_client"
 	db "draftmark/persistence"
-	"github.com/stretchr/testify/assert"
-	"testing"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"time"
 )
 
-// Fake client with new entry
-
-type FakeClientWithNewEntry struct{}
-
-func (c *FakeClientWithNewEntry) GetChanges() []dropbox.DropboxEntry {
-	r := []dropbox.DropboxEntry{{Path: "/notes/test.md", IsDeleted: false, Modified: time.Now()}}
-	return r
+type FakeDropboxClient struct {
+	getChanges []dropbox.DropboxEntry
 }
 
-// Fake client with deleted entry
-
-type FakeClientWithDeletedEntry struct{}
-
-func (c *FakeClientWithDeletedEntry) GetChanges() []dropbox.DropboxEntry {
-	r := []dropbox.DropboxEntry{{Path: "/notes/test.md", IsDeleted: true, Modified: time.Now()}}
-	return r
+func (c *FakeDropboxClient) GetChanges() []dropbox.DropboxEntry {
+	return c.getChanges
 }
-
-// Fake DB
 
 type FakeDb struct {
+	saveNoteCount   int
+	deleteNoteCount int
 }
 
 func (d *FakeDb) DeleteNote(note db.Note) bool {
+	d.deleteNoteCount++
 	return true
 }
 
 func (d *FakeDb) SaveNote(note db.Note) bool {
-	saveNoteCount++
+	d.saveNoteCount++
 	return true
 }
 
 var user = User{1, "gammons@gmail.com", "asdf", "asdf", "123", time.Now(), time.Now()}
-var fdb = new(FakeDb)
-var saveNoteCount = 0
 
-func TestSync_NewFileAdded(t *testing.T) {
-	client := &Sync{Dropbox: &FakeClientWithNewEntry{}, Db: fdb}
+var _ = Describe("Sync", func() {
+	var fakedb FakeDb
+	var fakeDropboxClient FakeDropboxClient
+	var client = &Sync{Dropbox: &fakeDropboxClient, Db: &fakedb}
 
-	client.DoSync(user, "/notes")
-	assert.Equal(t, saveNoteCount, 1)
-}
+	BeforeEach(func() {
+		fakedb.saveNoteCount = 0
+		fakedb.deleteNoteCount = 0
+	})
 
-func TestSync_NoteDeleted(t *testing.T) {
-	//client := &Sync{Dropbox: &FakeClientWithNewEntry{}, Db: fdb}
+	Context("A file was added or changed", func() {
+		It("Saves the file to the db", func() {
+			fakeDropboxClient.getChanges = []dropbox.DropboxEntry{{Path: "/notes/test.md", IsDeleted: false, Modified: time.Now()}}
+			client.DoSync(user, "/notes")
+			Expect(fakedb.saveNoteCount).To(Equal(1))
+			Expect(fakedb.deleteNoteCount).To(Equal(0))
+		})
+	})
 
-}
+	Context("A file was deleted", func() {
+		It("Deletes the file to the db", func() {
+			fakeDropboxClient.getChanges = []dropbox.DropboxEntry{{Path: "/notes/test.md", IsDeleted: true, Modified: time.Now()}}
+			client.DoSync(user, "/notes")
+			Expect(fakedb.deleteNoteCount).To(Equal(1))
+			Expect(fakedb.saveNoteCount).To(Equal(0))
+		})
+	})
+
+	Describe("Ignoring files we don't care about", func() {
+		It("ignores files outside of the directory we care about", func() {
+			fakeDropboxClient.getChanges = []dropbox.DropboxEntry{{Path: "/Pictures/test.md", IsDeleted: true, Modified: time.Now()}}
+			client.DoSync(user, "/notes")
+			Expect(fakedb.deleteNoteCount).To(Equal(0))
+			Expect(fakedb.saveNoteCount).To(Equal(0))
+		})
+
+		It("ignores files that do not end in .md", func() {
+			fakeDropboxClient.getChanges = []dropbox.DropboxEntry{{Path: "/notes/test.txt", IsDeleted: true, Modified: time.Now()}}
+			client.DoSync(user, "/notes")
+			Expect(fakedb.deleteNoteCount).To(Equal(0))
+			Expect(fakedb.saveNoteCount).To(Equal(0))
+		})
+	})
+})

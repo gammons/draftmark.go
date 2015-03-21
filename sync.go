@@ -6,6 +6,7 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -46,6 +47,10 @@ func NewSync() *Sync {
 func (s *Sync) DoSync(user User, prefix string) {
 	entries := s.Dropbox.GetChanges()
 	for _, entry := range entries {
+		if !strings.HasPrefix(entry.Path, prefix) || !strings.HasSuffix(entry.Path, ".md") {
+			continue
+		}
+
 		if entry.IsDeleted {
 			s.deleteEntry(&user, &entry)
 		} else {
