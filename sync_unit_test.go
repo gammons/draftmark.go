@@ -14,7 +14,7 @@ type FakeDropboxClient struct {
 	getChanges []dropbox.DropboxEntry
 }
 
-func (c *FakeDropboxClient) GetChanges() []dropbox.DropboxEntry {
+func (c *FakeDropboxClient) GetChanges(cursor string, prefix string) []dropbox.DropboxEntry {
 	return c.getChanges
 }
 
@@ -33,9 +33,8 @@ func (d *FakeDb) SaveNote(note db.Note) bool {
 	return true
 }
 
-var user = User{1, "gammons@gmail.com", "asdf", "asdf", "123", time.Now(), time.Now()}
-
 var _ = Describe("Sync", func() {
+	var user = User{1, "gammons@gmail.com", "asdf", "asdf", "123", time.Now(), time.Now()}
 	var fakedb FakeDb
 	var fakeDropboxClient FakeDropboxClient
 	var client = &Sync{Dropbox: &fakeDropboxClient, Db: &fakedb}

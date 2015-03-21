@@ -2,6 +2,7 @@ package dropbox_client
 
 import (
 	"github.com/stacktic/dropbox"
+	"log"
 	"os"
 	"time"
 )
@@ -15,38 +16,35 @@ type DropboxEntry struct {
 
 var dbox = dropbox.NewDropbox()
 
-func init() {
-	setupDropbox()
-}
-
 type DropboxClient interface {
-	GetChanges() []DropboxEntry
+	GetChanges(cursor, prefix string) []DropboxEntry
 }
 
 type Client struct {
 	AccessToken string
 	Cursor      string
 	Prefix      string
+	Dbox        *dropbox.Dropbox
 }
 
-func (c *Client) GetChanges() []DropboxEntry {
-	dbox.SetAccessToken(c.AccessToken)
+func (c *Client) InitDropbox() {
+	c.Dbox = dropbox.NewDropbox()
+	c.Dbox.SetAppInfo(os.Getenv("DROPBOX_KEY"), os.Getenv("DROPBOX_SECRET"))
+	c.Dbox.SetAccessToken(c.AccessToken)
+}
+
+func (c *Client) GetChanges(cursor string, prefix string) []DropboxEntry {
 	allEntries := make([]DropboxEntry, 0)
 
 	for {
-		delta, _ := dbox.Delta(c.Cursor, c.Prefix)
+		delta, _ := c.Dbox.Delta(cursor, prefix)
 		for _, entry := range delta.Entries {
 			allEntries = append(allEntries, DropboxEntry{entry.Entry.Path, "", entry.Entry.IsDeleted, time.Time(entry.Entry.Modified)})
 		}
+		log.Println("In entries, hasmore = ", delta.HasMore)
 		if !delta.HasMore {
 			break
 		}
 	}
 	return allEntries
-}
-
-func setupDropbox() {
-	var dbox *dropbox.Dropbox
-	dbox = dropbox.NewDropbox()
-	dbox.SetAppInfo(os.Getenv("DROPBOX_KEY"), os.Getenv("DROPBOX_SECRET"))
 }

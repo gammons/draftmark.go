@@ -45,7 +45,7 @@ func NewSync() *Sync {
 }
 
 func (s *Sync) DoSync(user User, prefix string) {
-	entries := s.Dropbox.GetChanges()
+	entries := s.Dropbox.GetChanges(user.DropboxCursor, prefix)
 	for _, entry := range entries {
 		if !strings.HasPrefix(entry.Path, prefix) || !strings.HasSuffix(entry.Path, ".md") {
 			continue
