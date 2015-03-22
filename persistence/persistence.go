@@ -3,7 +3,6 @@ package persistence
 import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
-	"log"
 	"os"
 	"time"
 )
@@ -59,8 +58,6 @@ func (c *Client) DeleteNote(note Note) bool {
 }
 
 func (c *Client) SaveNote(note Note) bool {
-	log.Println("saving note", note)
-	log.Println(c.Db.Create(&note))
-	//c.Db.Where(Note{Path: note.Path}).FirstOrCreate(&note)
+	c.Db.Where(Note{Path: note.Path}).FirstOrCreate(&note)
 	return true
 }
