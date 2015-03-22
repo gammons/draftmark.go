@@ -17,7 +17,7 @@ type DropboxEntry struct {
 var dbox = dropbox.NewDropbox()
 
 type DropboxClient interface {
-	GetChanges(cursor, prefix string) []DropboxEntry
+	GetChanges(cursor, prefix string) []*DropboxEntry
 }
 
 type Client struct {
@@ -33,18 +33,27 @@ func (c *Client) InitDropbox() {
 	c.Dbox.SetAccessToken(c.AccessToken)
 }
 
-func (c *Client) GetChanges(cursor string, prefix string) []DropboxEntry {
-	allEntries := make([]DropboxEntry, 0)
+func (c *Client) GetChanges(cursor string, prefix string) []*DropboxEntry {
+	//var allEntries = make([]*DropboxEntry, 0, 100)
+	allEntries := []*DropboxEntry{}
 
 	for {
 		delta, _ := c.Dbox.Delta(cursor, prefix)
 		for _, entry := range delta.Entries {
-			allEntries = append(allEntries, DropboxEntry{entry.Entry.Path, "", entry.Entry.IsDeleted, time.Time(entry.Entry.Modified)})
+			if entry.Entry == nil {
+				log.Println("entry.Entry = nil")
+				newEntry := &DropboxEntry{entry.Path, "", true, time.Now()}
+				log.Println("newEntry = ", newEntry)
+				allEntries = append(allEntries, newEntry)
+			} else {
+				newEntry := &DropboxEntry{entry.Path, "", entry.Entry.IsDeleted, time.Time(entry.Entry.Modified)}
+				allEntries = append(allEntries, newEntry)
+			}
 		}
-		log.Println("In entries, hasmore = ", delta.HasMore)
 		if !delta.HasMore {
 			break
 		}
 	}
+	log.Println("returning allEntries as ", allEntries)
 	return allEntries
 }

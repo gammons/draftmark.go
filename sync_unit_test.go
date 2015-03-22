@@ -11,10 +11,10 @@ import (
 )
 
 type FakeDropboxClient struct {
-	getChanges []dropbox.DropboxEntry
+	getChanges []*dropbox.DropboxEntry
 }
 
-func (c *FakeDropboxClient) GetChanges(cursor string, prefix string) []dropbox.DropboxEntry {
+func (c *FakeDropboxClient) GetChanges(cursor string, prefix string) []*dropbox.DropboxEntry {
 	return c.getChanges
 }
 
@@ -33,7 +33,7 @@ func (d *FakeDb) SaveNote(note db.Note) bool {
 	return true
 }
 
-var _ = Describe("Sync", func() {
+var _ = Describe("Sync Unit tests", func() {
 	var user = User{1, "gammons@gmail.com", "asdf", "asdf", "123", time.Now(), time.Now()}
 	var fakedb FakeDb
 	var fakeDropboxClient FakeDropboxClient
@@ -46,7 +46,7 @@ var _ = Describe("Sync", func() {
 
 	Context("A file was added or changed", func() {
 		It("Saves the file to the db", func() {
-			fakeDropboxClient.getChanges = []dropbox.DropboxEntry{{Path: "/notes/test.md", IsDeleted: false, Modified: time.Now()}}
+			fakeDropboxClient.getChanges = []*dropbox.DropboxEntry{{Path: "/notes/test.md", IsDeleted: false, Modified: time.Now()}}
 			client.DoSync(user, "/notes")
 			Expect(fakedb.saveNoteCount).To(Equal(1))
 			Expect(fakedb.deleteNoteCount).To(Equal(0))
@@ -55,7 +55,7 @@ var _ = Describe("Sync", func() {
 
 	Context("A file was deleted", func() {
 		It("Deletes the file to the db", func() {
-			fakeDropboxClient.getChanges = []dropbox.DropboxEntry{{Path: "/notes/test.md", IsDeleted: true, Modified: time.Now()}}
+			fakeDropboxClient.getChanges = []*dropbox.DropboxEntry{{Path: "/notes/test.md", IsDeleted: true, Modified: time.Now()}}
 			client.DoSync(user, "/notes")
 			Expect(fakedb.deleteNoteCount).To(Equal(1))
 			Expect(fakedb.saveNoteCount).To(Equal(0))
@@ -64,14 +64,14 @@ var _ = Describe("Sync", func() {
 
 	Describe("Ignoring files we don't care about", func() {
 		It("ignores files outside of the directory we care about", func() {
-			fakeDropboxClient.getChanges = []dropbox.DropboxEntry{{Path: "/Pictures/test.md", IsDeleted: true, Modified: time.Now()}}
+			fakeDropboxClient.getChanges = []*dropbox.DropboxEntry{{Path: "/Pictures/test.md", IsDeleted: true, Modified: time.Now()}}
 			client.DoSync(user, "/notes")
 			Expect(fakedb.deleteNoteCount).To(Equal(0))
 			Expect(fakedb.saveNoteCount).To(Equal(0))
 		})
 
 		It("ignores files that do not end in .md", func() {
-			fakeDropboxClient.getChanges = []dropbox.DropboxEntry{{Path: "/notes/test.txt", IsDeleted: true, Modified: time.Now()}}
+			fakeDropboxClient.getChanges = []*dropbox.DropboxEntry{{Path: "/notes/test.txt", IsDeleted: true, Modified: time.Now()}}
 			client.DoSync(user, "/notes")
 			Expect(fakedb.deleteNoteCount).To(Equal(0))
 			Expect(fakedb.saveNoteCount).To(Equal(0))

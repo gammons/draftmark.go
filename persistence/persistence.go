@@ -3,6 +3,7 @@ package persistence
 import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
+	"log"
 	"os"
 	"time"
 )
@@ -38,7 +39,8 @@ type Client struct {
 }
 
 func (c *Client) InitDB() {
-	c.Db, _ = gorm.Open("postgres", "dbname="+os.Getenv("DB_TABLENAME")+"sslmode=disable")
+	c.Db, _ = gorm.Open("postgres", "dbname="+os.Getenv("DB_TABLENAME")+" sslmode=disable")
+	c.Db.LogMode(true)
 }
 
 func NewClient() DBClient {
@@ -52,10 +54,13 @@ func (c *Client) NoteCount() int {
 }
 
 func (c *Client) DeleteNote(note Note) bool {
+	c.Db.Delete(&note)
 	return true
 }
 
 func (c *Client) SaveNote(note Note) bool {
-	c.Db.Where(Note{Path: note.Path}).FirstOrCreate(&note)
+	log.Println("saving note", note)
+	log.Println(c.Db.Create(&note))
+	//c.Db.Where(Note{Path: note.Path}).FirstOrCreate(&note)
 	return true
 }

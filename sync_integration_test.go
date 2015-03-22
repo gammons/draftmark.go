@@ -25,20 +25,60 @@ var _ = BeforeSuite(func() {
 var _ = AfterSuite(func() {
 	log.Println(dbox.Dbox.Delete(tmpFolder))
 	dbox.Dbox.Delete(tmpFolder)
-	database.Db.Exec("drop table users")
 	database.Db.DropTable(&db.User{})
 	database.Db.DropTable(&db.Note{})
 })
 
-var _ = Describe("Sync", func() {
-	var user = User{1, "gammons@gmail.com", "asdf", "asdf", "123", time.Now(), time.Now()}
+var _ = Describe("Sync Integration", func() {
+	var user = User{1, "gammons@gmail.com", "", "", "123", time.Now(), time.Now()}
 	var sync = &Sync{Db: database, Dropbox: dbox}
+
+	BeforeEach(func() {
+		database.Db.Delete(&Note{})
+		database.Db.Delete(&User{})
+	})
+
 	Context("A new file is added in dropbox", func() {
+		BeforeEach(func() {
+			cursor, _ := dbox.Dbox.LatestCursor(tmpFolder, false)
+
+			// ensure you delete test.md in your real dropbox folder for this test to pass.
+			dbox.Dbox.UploadFile("test.md", tmpFolder+"/test.md", true, "")
+			user.DropboxCursor = cursor.Cursor
+		})
+
 		It("Adds the file to the db", func() {
 			sync.DoSync(user, tmpFolder)
 			log.Println("note count = ", database.NoteCount())
 			Expect(database.NoteCount()).To(Equal(1))
-			//Expect(database.Db.Table("notes").Count(&count)).To(Equal(1))
+			dbox.Dbox.Delete(tmpFolder + "/test.md")
+		})
+	})
+	Context("A file was changed", func() {
+		It("Removes the file from the db and replaces it with a new entry", func() {
+		})
+	})
+
+	Context("A file was deleted from dropbox", func() {
+		BeforeEach(func() {
+			// get the latest cursor
+			cursor, _ := dbox.Dbox.LatestCursor(tmpFolder, false)
+			user.DropboxCursor = cursor.Cursor
+
+			// upload the file we want to delete, and ensure it gets put into our local db
+			dbox.Dbox.UploadFile("test.md", tmpFolder+"/deleted.md", true, "")
+			sync.DoSync(user, tmpFolder)
+
+			// set the cursor for the user
+			cursor, _ = dbox.Dbox.LatestCursor(tmpFolder, false)
+			user.DropboxCursor = cursor.Cursor
+
+			log.Println(dbox.Dbox.Delete(tmpFolder + "/deleted.md"))
+		})
+
+		It("Removes the file to the db", func() {
+			sync.DoSync(user, tmpFolder)
+			Expect(database.NoteCount()).To(Equal(0))
 		})
 	})
 })

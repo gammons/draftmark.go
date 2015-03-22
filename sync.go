@@ -47,14 +47,16 @@ func NewSync() *Sync {
 func (s *Sync) DoSync(user User, prefix string) {
 	entries := s.Dropbox.GetChanges(user.DropboxCursor, prefix)
 	for _, entry := range entries {
+		log.Println("Entry is ", entry)
 		if !strings.HasPrefix(entry.Path, prefix) || !strings.HasSuffix(entry.Path, ".md") {
+			log.Println("entry does not meet suffix and prefix requirements")
 			continue
 		}
 
 		if entry.IsDeleted {
-			s.deleteEntry(&user, &entry)
+			s.deleteEntry(&user, entry)
 		} else {
-			s.createOrUpdateEntry(&user, &entry)
+			s.createOrUpdateEntry(&user, entry)
 		}
 	}
 }
