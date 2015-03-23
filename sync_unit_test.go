@@ -28,7 +28,7 @@ func (d *FakeDb) DeleteNote(note db.Note) bool {
 	return true
 }
 
-func (d *FakeDb) SaveNote(note db.Note) bool {
+func (d *FakeDb) SaveNote(note *db.Note) bool {
 	d.saveNoteCount++
 	return true
 }

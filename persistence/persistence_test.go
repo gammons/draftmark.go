@@ -1,6 +1,7 @@
 package persistence
 
 import (
+	"fmt"
 	"os"
 	"testing"
 )
@@ -10,8 +11,10 @@ func init() {
 }
 
 func TestSaveNote(t *testing.T) {
-	note := Note{Path: "/notes/test.md"}
-	client := new(Client)
-	client.SaveNote(note)
+	user := &User{Email: "test@test.com"}
+	fmt.Println(user)
+	// note := &Note{Path: "/notes/test.md"}
+	// client := new(Client)
+	// client.SaveNote(note)
 
 }

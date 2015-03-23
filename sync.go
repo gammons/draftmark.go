@@ -68,7 +68,7 @@ func (s *Sync) deleteEntry(user *User, entry *dropbox.DropboxEntry) {
 
 func (s *Sync) createOrUpdateEntry(user *User, entry *dropbox.DropboxEntry) {
 	note := db.Note{UserId: user.ID, Path: entry.Path, Mtime: entry.Modified}
-	s.Db.SaveNote(note)
+	s.Db.SaveNote(&note)
 }
 
 func setupDotEnv() {

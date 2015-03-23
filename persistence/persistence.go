@@ -8,13 +8,13 @@ import (
 )
 
 type User struct {
-	email                string
-	encrypted_password   string
-	dropbox_access_token string
-	dropbox_cursor       string
-	dropbox_user_id      string
-	created_at           time.Time
-	updated_at           time.Time
+	Email              string
+	EncryptedPassword  string
+	DropboxAccessToken string
+	DropboxCursor      string
+	DropboxUserId      string
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
 }
 
 type Note struct {
@@ -30,7 +30,7 @@ type Note struct {
 
 type DBClient interface {
 	DeleteNote(note Note) bool
-	SaveNote(note Note) bool
+	SaveNote(note *Note) bool
 }
 
 type Client struct {
@@ -57,7 +57,7 @@ func (c *Client) DeleteNote(note Note) bool {
 	return true
 }
 
-func (c *Client) SaveNote(note Note) bool {
-	c.Db.Where(Note{Path: note.Path}).FirstOrCreate(&note)
+func (c *Client) SaveNote(note *Note) bool {
+	c.Db.Where(&Note{Path: note.Path}).FirstOrCreate(note)
 	return true
 }
