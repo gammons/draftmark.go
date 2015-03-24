@@ -30,12 +30,12 @@ var _ = AfterSuite(func() {
 })
 
 var _ = Describe("Sync Integration", func() {
-	var user = User{1, "gammons@gmail.com", "", "", "123", time.Now(), time.Now()}
+	var user = db.User{ID: 1, Email: "gammons@gmail.com", DropboxCursor: "", DropboxAccessToken: "", DropboxUserId: "123", CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	var sync = &Sync{Db: database, Dropbox: dbox}
 
 	BeforeEach(func() {
-		database.Db.Delete(&Note{})
-		database.Db.Delete(&User{})
+		database.Db.Delete(&db.Note{})
+		database.Db.Delete(&db.User{})
 	})
 
 	Context("A new file is added in dropbox", func() {

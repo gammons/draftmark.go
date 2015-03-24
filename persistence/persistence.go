@@ -8,6 +8,7 @@ import (
 )
 
 type User struct {
+	ID                 int
 	Email              string
 	EncryptedPassword  string
 	DropboxAccessToken string
@@ -30,7 +31,8 @@ type Note struct {
 
 type DBClient interface {
 	DeleteNote(note Note) bool
-	SaveNote(note *Note) bool
+	SaveNote(note Note) bool
+	UpdateUserCursor(user User, cursor string) bool
 }
 
 type Client struct {
@@ -43,7 +45,9 @@ func (c *Client) InitDB() {
 }
 
 func NewClient() DBClient {
-	return &Client{}
+	client := &Client{}
+	client.InitDB()
+	return client
 }
 
 func (c *Client) NoteCount() int {
@@ -57,7 +61,11 @@ func (c *Client) DeleteNote(note Note) bool {
 	return true
 }
 
-func (c *Client) SaveNote(note *Note) bool {
-	c.Db.Where(&Note{Path: note.Path}).FirstOrCreate(note)
+func (c *Client) SaveNote(note Note) bool {
+	c.Db.Create(&note)
+	return true
+}
+
+func (c *Client) UpdateUserCursor(user User, cursor string) bool {
 	return true
 }
