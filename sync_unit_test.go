@@ -12,10 +12,15 @@ import (
 
 type FakeDropboxClient struct {
 	getChanges []*dropbox.DropboxEntry
+	getContent string
 }
 
 func (c *FakeDropboxClient) GetChanges(cursor *string, prefix string) (string, []*dropbox.DropboxEntry) {
 	return "asdf", c.getChanges
+}
+
+func (c *FakeDropboxClient) GetContent(path string) string {
+	return c.getContent
 }
 
 type FakeDb struct {

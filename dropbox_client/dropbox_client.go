@@ -2,6 +2,7 @@ package dropbox_client
 
 import (
 	"github.com/stacktic/dropbox"
+	"io/ioutil"
 	"os"
 	"time"
 )
@@ -17,6 +18,7 @@ var dbox = dropbox.NewDropbox()
 
 type DropboxClient interface {
 	GetChanges(cursor *string, prefix string) (string, []*DropboxEntry)
+	GetContent(path string) string
 }
 
 type Client struct {
@@ -53,4 +55,14 @@ func (c *Client) GetChanges(cursor *string, prefix string) (string, []*DropboxEn
 		}
 	}
 	return nextCursor, allEntries
+}
+
+func (c *Client) GetContent(path string) (string, error) {
+	noteio, length, err := c.Dbox.Download(path, "", 0)
+	if length != 0 {
+		note, _ := ioutil.ReadAll(noteio)
+		return string(note), nil
+	} else {
+		return "", err
+	}
 }

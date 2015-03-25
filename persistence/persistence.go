@@ -56,6 +56,11 @@ func (c *Client) NoteCount() int {
 	return count
 }
 
+func (c *Client) SaveNoteContents(note Note, content string) {
+	note.Content = content
+	c.Db.Update(&note)
+}
+
 func (c *Client) DeleteNote(note Note) bool {
 	c.Db.Delete(&note)
 	return true
@@ -67,5 +72,7 @@ func (c *Client) SaveNote(note Note) bool {
 }
 
 func (c *Client) UpdateUserCursor(user User, cursor string) bool {
+	user.DropboxCursor = cursor
+	c.Db.Save(&user)
 	return true
 }

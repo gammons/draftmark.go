@@ -1,15 +1,40 @@
-package dropbox_client
+package dropbox_client_test
 
-// import (
-// 	. "github.com/onsi/ginkgo"
-// 	"log"
-// )
-//
-// var _ = Describe("GetChanges", func() {
-// 	Context("when a file was added", func() {
-// 		It("formats the changes into structs we can use", func() {
-// 			cursor := "AAFgCG92wqUmmIkazqOpsQ5LrRWTlWj-AHAkRAYv9Vg3tJtYirdhAVoVPdjlEOJYAKPVN99aUzd9tg9DbtoKiPuSwvY6k1MELwXSNt6mySPZaGJ6B159PgOHVwGM30pZqoAJFZpKD8Zui0i3_T3lXR_L"
-// 			log.Println(GetChanges("RzfZv3hAoIYAAAAAAAAAPsb7sPkL5AfuSb_u09087nYcJ20qwfoH7EjNm3NiJKz0", cursor, "/notes"))
-// 		})
-// 	})
-// })
+import (
+	dropbox "draftmark/dropbox_client"
+	"github.com/joho/godotenv"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"os"
+)
+
+var dbox = &dropbox.Client{}
+var tmpFolder = "/__draftmarktest__"
+
+var _ = BeforeSuite(func() {
+	_ = godotenv.Load("test.env")
+	setupDropbox()
+})
+
+var _ = Describe("Dropbox Client", func() {
+	var _ = Describe("GetContent", func() {
+		It("can get the content of the file", func() {
+			dbox.Dbox.UploadFile("../test.md", tmpFolder+"/test.md", true, "")
+			Expect(dbox.GetContent(tmpFolder + "/test.md")).To(ContainSubstring("this is a test file"))
+			dbox.Dbox.Delete(tmpFolder + "/test.md")
+		})
+
+		Context("When the file cannot be found, or is empty", func() {
+			It("returns the error", func() {
+				_, err := dbox.GetContent("notfound.md")
+				Expect(err.Error()).To(Equal("file does not exist"))
+			})
+		})
+	})
+})
+
+func setupDropbox() {
+	dbox.AccessToken = os.Getenv("DROPBOX_ACCESS_TOKEN")
+	dbox.InitDropbox()
+	dbox.Dbox.CreateFolder(tmpFolder)
+}
