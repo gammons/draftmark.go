@@ -18,7 +18,7 @@ var dbox = dropbox.NewDropbox()
 
 type DropboxClient interface {
 	GetChanges(cursor *string, prefix string) (string, []*DropboxEntry)
-	GetContent(path string) string
+	GetContent(path string) (string, error)
 }
 
 type Client struct {

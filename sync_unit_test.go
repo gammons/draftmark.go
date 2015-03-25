@@ -19,8 +19,8 @@ func (c *FakeDropboxClient) GetChanges(cursor *string, prefix string) (string, [
 	return "asdf", c.getChanges
 }
 
-func (c *FakeDropboxClient) GetContent(path string) string {
-	return c.getContent
+func (c *FakeDropboxClient) GetContent(path string) (string, error) {
+	return c.getContent, nil
 }
 
 type FakeDb struct {

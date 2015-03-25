@@ -49,7 +49,8 @@ func (s *Sync) deleteEntry(user *db.User, entry *dropbox.DropboxEntry) {
 }
 
 func (s *Sync) createOrUpdateEntry(user *db.User, entry *dropbox.DropboxEntry) {
-	note := db.Note{UserId: user.ID, Path: entry.Path, Mtime: entry.Modified}
+	content, _ := s.Dropbox.GetContent(entry.Path)
+	note := db.Note{UserId: user.ID, Path: entry.Path, Mtime: entry.Modified, Content: content}
 	s.Db.SaveNote(note)
 }
 
