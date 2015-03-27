@@ -8,7 +8,7 @@ import (
 )
 
 type User struct {
-	ID                 int
+	ID                 int `gorm:"primary_key"`
 	Email              string
 	EncryptedPassword  string
 	DropboxAccessToken string
@@ -19,7 +19,7 @@ type User struct {
 }
 
 type Note struct {
-	ID        int
+	ID        int `gorm:"primary_key"`
 	Title     string
 	Content   string `sql:"type:text"`
 	UserId    int
@@ -33,6 +33,7 @@ type DBClient interface {
 	DeleteNote(note Note) bool
 	SaveNote(note Note) bool
 	UpdateUserCursor(user User, cursor string) bool
+	ListNotes(user *User) []Note
 }
 
 type Client struct {
@@ -53,6 +54,12 @@ func (c *Client) NoteCount() int {
 	var count int
 	c.Db.Table("notes").Count(&count)
 	return count
+}
+
+func (c *Client) ListNotes(user *User) []Note {
+	var notes []Note
+	c.Db.Model(user).Related(&notes)
+	return notes
 }
 
 func (c *Client) SaveNoteContents(note Note, content string) {
