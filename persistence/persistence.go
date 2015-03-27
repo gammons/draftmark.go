@@ -30,10 +30,11 @@ type Note struct {
 }
 
 type DBClient interface {
-	DeleteNote(note Note) bool
-	SaveNote(note Note) bool
-	UpdateUserCursor(user User, cursor string) bool
+	DeleteNote(note *Note) bool
+	SaveNote(note *Note) bool
+	UpdateUserCursor(user *User, cursor string) bool
 	ListNotes(user *User) []Note
+	GetNoteContents(note *Note) string
 }
 
 type Client struct {
@@ -62,23 +63,23 @@ func (c *Client) ListNotes(user *User) []Note {
 	return notes
 }
 
-func (c *Client) SaveNoteContents(note Note, content string) {
-	note.Content = content
-	c.Db.Update(&note)
+func (c *Client) GetNoteContents(note *Note) string {
+	c.Db.First(note)
+	return note.Content
 }
 
-func (c *Client) DeleteNote(note Note) bool {
-	c.Db.Delete(&note)
+func (c *Client) DeleteNote(note *Note) bool {
+	c.Db.Delete(note)
 	return true
 }
 
-func (c *Client) SaveNote(note Note) bool {
-	c.Db.Create(&note)
+func (c *Client) SaveNote(note *Note) bool {
+	c.Db.Create(note)
 	return true
 }
 
-func (c *Client) UpdateUserCursor(user User, cursor string) bool {
+func (c *Client) UpdateUserCursor(user *User, cursor string) bool {
 	user.DropboxCursor = cursor
-	c.Db.Save(&user)
+	c.Db.Save(user)
 	return true
 }

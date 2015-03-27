@@ -28,7 +28,7 @@ func NewSync(accessToken string) *Sync {
 func (s *Sync) DoSync(user db.User, prefix string) {
 	nextCursor, entries := s.Dropbox.GetChanges(&user.DropboxCursor, prefix)
 
-	s.Db.UpdateUserCursor(user, nextCursor)
+	s.Db.UpdateUserCursor(&user, nextCursor)
 
 	for _, entry := range entries {
 		if !strings.HasPrefix(entry.Path, prefix) || !strings.HasSuffix(entry.Path, ".md") {
@@ -45,13 +45,13 @@ func (s *Sync) DoSync(user db.User, prefix string) {
 
 func (s *Sync) deleteEntry(user *db.User, entry *dropbox.DropboxEntry) {
 	note := db.Note{UserId: user.ID, Path: entry.Path, Mtime: entry.Modified}
-	s.Db.DeleteNote(note)
+	s.Db.DeleteNote(&note)
 }
 
 func (s *Sync) createOrUpdateEntry(user *db.User, entry *dropbox.DropboxEntry) {
 	content, _ := s.Dropbox.GetContent(entry.Path)
 	note := db.Note{UserId: user.ID, Path: entry.Path, Mtime: entry.Modified, Content: content}
-	s.Db.SaveNote(note)
+	s.Db.SaveNote(&note)
 }
 
 func setupDotEnv() {

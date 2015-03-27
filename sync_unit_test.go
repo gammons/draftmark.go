@@ -26,19 +26,29 @@ func (c *FakeDropboxClient) GetContent(path string) (string, error) {
 type FakeDb struct {
 	saveNoteCount   int
 	deleteNoteCount int
+	noteContents    string
+	listNotes       []db.Note
 }
 
-func (d *FakeDb) DeleteNote(note db.Note) bool {
+func (d *FakeDb) DeleteNote(note *db.Note) bool {
 	d.deleteNoteCount++
 	return true
 }
 
-func (d *FakeDb) SaveNote(note db.Note) bool {
+func (d *FakeDb) SaveNote(note *db.Note) bool {
 	d.saveNoteCount++
 	return true
 }
 
-func (d *FakeDb) UpdateUserCursor(user db.User, cursor string) bool {
+func (d *FakeDb) GetNoteContents(note *db.Note) string {
+	return d.noteContents
+}
+
+func (d *FakeDb) ListNotes(user *db.User) []db.Note {
+	return d.listNotes
+}
+
+func (d *FakeDb) UpdateUserCursor(user *db.User, cursor string) bool {
 	return true
 }
 

@@ -27,8 +27,9 @@ var _ = AfterSuite(func() {
 	db.Db.DropTable(&database.Note{})
 })
 
+var user = database.User{Email: "gammons@gmail.com"}
+
 var _ = Describe("ListNotes", func() {
-	var user = database.User{Email: "gammons@gmail.com"}
 	var note1 = &database.Note{Path: "/notes/test.md", UserId: 1}
 	var note2 = &database.Note{Path: "/notes/test2.md", UserId: 1}
 	var _ = &database.Note{Path: "/notes/test3.md", UserId: 2}
@@ -47,4 +48,12 @@ var _ = Describe("ListNotes", func() {
 		Expect(paths).To(Equal(expected))
 	})
 
+})
+
+var _ = Describe("GetNoteContents", func() {
+	var note = &database.Note{Path: "/notes/test.md", UserId: 5, Content: "this is the content"}
+	It("Gets the note contents", func() {
+		db.Db.Create(note)
+		Expect(db.GetNoteContents(note)).To(Equal("this is the content"))
+	})
 })
