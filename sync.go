@@ -10,8 +10,9 @@ import (
 )
 
 type Sync struct {
-	Db      db.DBClient
-	Dropbox dropbox.DropboxClient
+	Db        db.DBClient
+	Dropbox   dropbox.DropboxClient
+	DoLogging bool
 }
 
 func init() {
@@ -25,19 +26,30 @@ func NewSync(accessToken string) *Sync {
 	return &Sync{Db: dbase, Dropbox: dbox}
 }
 
+func (s *Sync) Log(line string) {
+	if s.DoLogging {
+		log.Println(line)
+	}
+}
+
 func (s *Sync) DoSync(user db.User, prefix string) {
+	s.Log("Getting changes")
 	nextCursor, entries := s.Dropbox.GetChanges(&user.DropboxCursor, prefix)
 
+	s.Log("Updating cursor")
 	s.Db.UpdateUserCursor(&user, nextCursor)
 
+	s.Log("Beginning entry processing loop")
 	for _, entry := range entries {
 		if !strings.HasPrefix(entry.Path, prefix) || !strings.HasSuffix(entry.Path, ".md") {
 			continue
 		}
 
 		if entry.IsDeleted {
+			s.Log("Deleted:" + entry.Path)
 			s.deleteEntry(&user, entry)
 		} else {
+			s.Log("Updated or created:" + entry.Path)
 			s.createOrUpdateEntry(&user, entry)
 		}
 	}
