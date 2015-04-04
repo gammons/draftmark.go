@@ -60,7 +60,7 @@ func (c *Client) NoteCount() int {
 
 func (c *Client) ListNotes(user *User) []Note {
 	var notes []Note
-	c.Db.Select("id, title, left(content, 255) as content_preview, user_id, path, mtime, created_at, updated_at").Where("user_id = ?", user.ID).Find(&notes)
+	c.Db.Select("id, title, left(content, 255) as content_preview, user_id, path, mtime, created_at, updated_at").Where("user_id = ?", user.ID).Order("mtime desc").Find(&notes)
 	return notes
 }
 
