@@ -19,14 +19,15 @@ type User struct {
 }
 
 type Note struct {
-	ID        int `gorm:"primary_key"`
-	Title     string
-	Content   string `sql:"type:text"`
-	UserId    int
-	Path      string
-	Mtime     time.Time
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID             int       `gorm:"primary_key" json:"id"`
+	Title          string    `json:"title"`
+	Content        string    `sql:"type:text" json:"-"`
+	ContentPreview string    `json:"preview"`
+	UserId         int       `json:"user_id"`
+	Path           string    `json:"path"`
+	Mtime          time.Time `json:"mtime"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
 }
 
 type DBClient interface {
@@ -34,7 +35,7 @@ type DBClient interface {
 	SaveNote(note *Note) bool
 	UpdateUserCursor(user *User, cursor string) bool
 	ListNotes(user *User) []Note
-	GetNoteContents(note *Note) string
+	GetNoteContents(id int) string
 }
 
 type Client struct {
@@ -59,12 +60,13 @@ func (c *Client) NoteCount() int {
 
 func (c *Client) ListNotes(user *User) []Note {
 	var notes []Note
-	c.Db.Model(user).Related(&notes)
+	c.Db.Select("id, title, left(content, 255) as content_preview, user_id, path, mtime, created_at, updated_at").Where("user_id = ?", user.ID).Find(&notes)
 	return notes
 }
 
-func (c *Client) GetNoteContents(note *Note) string {
-	c.Db.First(note)
+func (c *Client) GetNoteContents(id int) string {
+	var note Note
+	c.Db.Select("content").Where("id = ?", id).First(&note)
 	return note.Content
 }
 

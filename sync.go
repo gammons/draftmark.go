@@ -39,8 +39,9 @@ func (s *Sync) DoSync(user db.User, prefix string) {
 	s.Log("Updating cursor")
 	s.Db.UpdateUserCursor(&user, nextCursor)
 
-	s.Log("Beginning entry processing loop")
+	s.Log("********* Beginning processing loop")
 	for _, entry := range entries {
+		s.Log("Processing: " + entry.Path)
 		if !strings.HasPrefix(entry.Path, prefix) || !strings.HasSuffix(entry.Path, ".md") {
 			continue
 		}
@@ -53,6 +54,7 @@ func (s *Sync) DoSync(user db.User, prefix string) {
 			s.createOrUpdateEntry(&user, entry)
 		}
 	}
+	s.Log("********* Ending  processing loop")
 }
 
 func (s *Sync) deleteEntry(user *db.User, entry *dropbox.DropboxEntry) {
@@ -62,8 +64,13 @@ func (s *Sync) deleteEntry(user *db.User, entry *dropbox.DropboxEntry) {
 
 func (s *Sync) createOrUpdateEntry(user *db.User, entry *dropbox.DropboxEntry) {
 	content, _ := s.Dropbox.GetContent(entry.Path)
-	note := db.Note{UserId: user.ID, Path: entry.Path, Mtime: entry.Modified, Content: content}
+	title := getTitle(content)
+	note := db.Note{UserId: user.ID, Path: entry.Path, Mtime: entry.Modified, Content: content, Title: title}
 	s.Db.SaveNote(&note)
+}
+
+func getTitle(content string) string {
+	return strings.Split(content, "\n")[0]
 }
 
 func setupDotEnv() {

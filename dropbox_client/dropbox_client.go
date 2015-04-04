@@ -3,6 +3,7 @@ package dropbox_client
 import (
 	"github.com/stacktic/dropbox"
 	"io/ioutil"
+	"log"
 	"os"
 	"time"
 )
@@ -39,7 +40,10 @@ func (c *Client) GetChanges(cursor *string, prefix string) (string, []*DropboxEn
 	var nextCursor string
 
 	for {
-		delta, _ := c.Dbox.Delta(*cursor, prefix)
+		delta, err := c.Dbox.Delta(*cursor, prefix)
+		if err != nil {
+			log.Fatal("Error getting delta", err)
+		}
 		nextCursor = delta.Cursor.Cursor
 		for _, entry := range delta.Entries {
 			if entry.Entry == nil {

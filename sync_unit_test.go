@@ -40,7 +40,7 @@ func (d *FakeDb) SaveNote(note *db.Note) bool {
 	return true
 }
 
-func (d *FakeDb) GetNoteContents(note *db.Note) string {
+func (d *FakeDb) GetNoteContents(id int) string {
 	return d.noteContents
 }
 

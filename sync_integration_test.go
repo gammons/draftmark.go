@@ -49,9 +49,15 @@ var _ = Describe("Sync Integration", func() {
 
 		It("Adds the file to the db", func() {
 			sync.DoSync(user, tmpFolder)
-			log.Println("note count = ", database.NoteCount())
 			Expect(database.NoteCount()).To(Equal(1))
 			dbox.Dbox.Delete(tmpFolder + "/test.md")
+		})
+
+		It("Sets the title", func() {
+			sync.DoSync(user, tmpFolder)
+			var note db.Note
+			database.Db.First(&note)
+			Expect(note.Title).To(Equal("# this is a test file"))
 		})
 	})
 	Context("A file was changed", func() {
