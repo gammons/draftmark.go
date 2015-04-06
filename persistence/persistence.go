@@ -76,7 +76,7 @@ func (c *Client) DeleteNote(note *Note) bool {
 }
 
 func (c *Client) SaveNote(note *Note) bool {
-	c.Db.Create(note)
+	c.Db.Save(note)
 	return true
 }
 
