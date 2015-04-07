@@ -20,19 +20,18 @@ var dbox = dropbox.NewDropbox()
 type DropboxClient interface {
 	GetChanges(cursor *string, prefix string) (string, []*DropboxEntry)
 	GetContent(path string) (string, error)
+	SetAccessToken(token string)
 }
 
 type Client struct {
-	AccessToken string
-	Cursor      string
-	Prefix      string
-	Dbox        *dropbox.Dropbox
+	Cursor string
+	Prefix string
+	Dbox   *dropbox.Dropbox
 }
 
 func (c *Client) InitDropbox() {
 	c.Dbox = dropbox.NewDropbox()
 	c.Dbox.SetAppInfo(os.Getenv("DROPBOX_KEY"), os.Getenv("DROPBOX_SECRET"))
-	c.Dbox.SetAccessToken(c.AccessToken)
 }
 
 func (c *Client) GetChanges(cursor *string, prefix string) (string, []*DropboxEntry) {
@@ -69,4 +68,8 @@ func (c *Client) GetContent(path string) (string, error) {
 	} else {
 		return "", err
 	}
+}
+
+func (c *Client) SetAccessToken(token string) {
+	c.Dbox.SetAccessToken(token)
 }

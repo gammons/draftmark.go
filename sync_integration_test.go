@@ -30,7 +30,7 @@ var _ = AfterSuite(func() {
 })
 
 var _ = Describe("Sync Integration", func() {
-	var user = db.User{ID: 1, Email: "gammons@gmail.com", DropboxCursor: "", DropboxAccessToken: "", DropboxUserId: "123", CreatedAt: time.Now(), UpdatedAt: time.Now()}
+	var user = db.User{ID: 1, Email: "gammons@gmail.com", DropboxCursor: "", DropboxAccessToken: os.Getenv("DROPBOX_ACCESS_TOKEN"), DropboxUserId: "123", CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	var sync = &Sync{Db: database, Dropbox: dbox}
 
 	BeforeEach(func() {
@@ -91,12 +91,13 @@ var _ = Describe("Sync Integration", func() {
 
 func setupDatabase() {
 	database.InitDB()
+	database.Db.DropTable(&db.User{})
+	database.Db.DropTable(&db.Note{})
 	database.Db.CreateTable(&db.User{})
 	database.Db.CreateTable(&db.Note{})
 }
 
 func setupDropbox() {
-	dbox.AccessToken = os.Getenv("DROPBOX_ACCESS_TOKEN")
 	dbox.InitDropbox()
 	dbox.Dbox.CreateFolder(tmpFolder)
 }

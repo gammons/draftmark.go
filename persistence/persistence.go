@@ -34,6 +34,7 @@ type DBClient interface {
 	DeleteNote(note *Note) bool
 	SaveNote(note *Note) bool
 	UpdateUserCursor(user *User, cursor string) bool
+	UpdateUserAccessToken(user *User, token string) bool
 	ListNotes(user *User) []Note
 	GetNoteContents(id int) string
 }
@@ -44,6 +45,7 @@ type Client struct {
 
 func (c *Client) InitDB() {
 	c.Db, _ = gorm.Open("postgres", "dbname="+os.Getenv("DB_TABLENAME")+" sslmode=disable")
+	c.Db.LogMode(true)
 }
 
 func NewClient() DBClient {
@@ -82,6 +84,12 @@ func (c *Client) SaveNote(note *Note) bool {
 
 func (c *Client) UpdateUserCursor(user *User, cursor string) bool {
 	user.DropboxCursor = cursor
+	c.Db.Save(user)
+	return true
+}
+
+func (c *Client) UpdateUserAccessToken(user *User, accessToken string) bool {
+	user.DropboxAccessToken = accessToken
 	c.Db.Save(user)
 	return true
 }

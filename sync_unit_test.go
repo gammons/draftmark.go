@@ -23,6 +23,8 @@ func (c *FakeDropboxClient) GetContent(path string) (string, error) {
 	return c.getContent, nil
 }
 
+func (c *FakeDropboxClient) SetAccessToken(path string) {}
+
 type FakeDb struct {
 	saveNoteCount   int
 	deleteNoteCount int

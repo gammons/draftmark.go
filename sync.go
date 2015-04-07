@@ -20,7 +20,7 @@ func init() {
 }
 
 func NewSync(accessToken string) *Sync {
-	dbox := &dropbox.Client{AccessToken: accessToken}
+	dbox := &dropbox.Client{}
 	dbox.InitDropbox()
 	dbase := db.NewClient()
 	return &Sync{Db: dbase, Dropbox: dbox}
@@ -34,6 +34,7 @@ func (s *Sync) Log(line string) {
 
 func (s *Sync) DoSync(user db.User, prefix string) {
 	s.Log("Getting changes")
+	s.Dropbox.SetAccessToken(user.DropboxAccessToken)
 	nextCursor, entries := s.Dropbox.GetChanges(&user.DropboxCursor, prefix)
 
 	s.Log("Updating cursor")
