@@ -67,7 +67,7 @@ func (s *Sync) createOrUpdateEntry(user *db.User, entry *dropbox.DropboxEntry) {
 	content, _ := s.Dropbox.GetContent(entry.Path)
 	title := getTitle(content)
 	note := db.Note{UserId: user.ID, Path: entry.Path, Mtime: entry.Modified, Content: content, Title: title}
-	s.Db.SaveNote(&note)
+	s.Db.SaveNote(user, &note)
 }
 
 func getTitle(content string) string {

@@ -32,7 +32,7 @@ type Note struct {
 
 type DBClient interface {
 	DeleteNote(note *Note) bool
-	SaveNote(note *Note) bool
+	SaveNote(user *User, note *Note) bool
 	UpdateUserCursor(user *User, cursor string) bool
 	ListNotes(user *User) []Note
 	GetNoteContents(user *User, path string) string
@@ -77,7 +77,8 @@ func (c *Client) DeleteNote(note *Note) bool {
 	return true
 }
 
-func (c *Client) SaveNote(note *Note) bool {
+func (c *Client) SaveNote(user *User, note *Note) bool {
+	c.Db.Where("user_id = ? AND path = ?", user, note).FirstOrInit(&note)
 	c.Db.Save(note)
 	return true
 }
