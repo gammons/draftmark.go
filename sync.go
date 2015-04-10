@@ -19,7 +19,7 @@ func init() {
 	setupDotEnv()
 }
 
-func NewSync(accessToken string) *Sync {
+func NewSync() *Sync {
 	dbox := &dropbox.Client{}
 	dbox.InitDropbox()
 	dbase := db.NewClient()

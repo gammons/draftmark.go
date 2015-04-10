@@ -42,7 +42,7 @@ func (d *FakeDb) SaveNote(note *db.Note) bool {
 	return true
 }
 
-func (d *FakeDb) GetNoteContents(id int) string {
+func (d *FakeDb) GetNoteContents(user *db.User, path string) string {
 	return d.noteContents
 }
 
@@ -51,6 +51,10 @@ func (d *FakeDb) ListNotes(user *db.User) []db.Note {
 }
 
 func (d *FakeDb) UpdateUserCursor(user *db.User, cursor string) bool {
+	return true
+}
+
+func (d *FakeDb) FindOrCreateUser(user *db.User) bool {
 	return true
 }
 

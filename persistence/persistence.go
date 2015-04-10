@@ -34,9 +34,9 @@ type DBClient interface {
 	DeleteNote(note *Note) bool
 	SaveNote(note *Note) bool
 	UpdateUserCursor(user *User, cursor string) bool
-	UpdateUserAccessToken(user *User, token string) bool
 	ListNotes(user *User) []Note
-	GetNoteContents(id int) string
+	GetNoteContents(user *User, path string) string
+	FindOrCreateUser(user *User) bool
 }
 
 type Client struct {
@@ -66,9 +66,9 @@ func (c *Client) ListNotes(user *User) []Note {
 	return notes
 }
 
-func (c *Client) GetNoteContents(id int) string {
+func (c *Client) GetNoteContents(user *User, path string) string {
 	var note Note
-	c.Db.Select("content").Where("id = ?", id).First(&note)
+	c.Db.Select("content").Where("user_id = ? AND path = ?", user.ID, path).First(&note)
 	return note.Content
 }
 
@@ -82,14 +82,19 @@ func (c *Client) SaveNote(note *Note) bool {
 	return true
 }
 
+func (c *Client) FindOrCreateUser(user *User) bool {
+	c.Db.Where("email = ?", user.Email).FirstOrCreate(&user)
+	return true
+}
+
 func (c *Client) UpdateUserCursor(user *User, cursor string) bool {
 	user.DropboxCursor = cursor
 	c.Db.Save(user)
 	return true
 }
 
-func (c *Client) UpdateUserAccessToken(user *User, accessToken string) bool {
-	user.DropboxAccessToken = accessToken
-	c.Db.Save(user)
-	return true
-}
+// func (c *Client) UpdateUserAccessToken(user *User, accessToken string) bool {
+// 	user.DropboxAccessToken = accessToken
+// 	c.Db.Save(user)
+// 	return true
+// }
