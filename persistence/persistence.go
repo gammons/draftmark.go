@@ -78,7 +78,9 @@ func (c *Client) DeleteNote(note *Note) bool {
 }
 
 func (c *Client) SaveNote(user *User, note *Note) bool {
-	c.Db.Where("user_id = ? AND path = ?", user, note.Path).FirstOrInit(&note)
+	var existingNote Note
+	c.Db.Where("user_id = ? AND path = ?", user.ID, note.Path).FirstOrInit(&existingNote)
+	note.ID = existingNote.ID
 	c.Db.Save(note)
 	return true
 }
